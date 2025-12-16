@@ -33,7 +33,7 @@ def init_db():
         )
     ''')
 
-    # Projects Table (NEW)
+    # Projects Table
     c.execute('''
         CREATE TABLE IF NOT EXISTS projects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -103,7 +103,7 @@ def delete_user(user_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# --- PROJECT ROUTES (NEW) ---
+# --- PROJECT ROUTES ---
 @app.route('/api/v1/projects', methods=['GET'])
 def get_projects():
     try:
@@ -166,11 +166,25 @@ def get_images():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/v1/images/<path:filename>', methods=['DELETE'])
+def delete_image(filename):
+    try:
+        # Secure the filename to prevent directory traversal
+        filename = secure_filename(filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            return jsonify({"message": "Image deleted", "status": "success"}), 200
+        else:
+            return jsonify({"error": "File not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     print("Starting Flask Server on port 5000...")
-    # app.run(port=5000, debug=True)
     app.run(host='0.0.0.0', port=5000)
